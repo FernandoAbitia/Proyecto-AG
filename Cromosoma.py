@@ -1,8 +1,9 @@
+import pandas as pd
 class Cromosoma:
 
     def __init__(self, genes):
         self._genes=genes
-        self._aptutid = 0
+        self._aptitud = 0
 
     def get_aptitud(self):
         return self._aptitud
@@ -17,7 +18,4 @@ class Cromosoma:
         self._genes=genes
 
     def __str__(self):
-        return self._genes.__str__()
-
-
-    
+        return str(self._genes)
