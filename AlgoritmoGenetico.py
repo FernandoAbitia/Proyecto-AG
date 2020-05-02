@@ -58,8 +58,20 @@ class AlgoritmoGenetico:
 
         
     def Seleccion(self):
-        
-        pass
+        torneo = []
+        descendientes = []
+        while descendientes.__len__ != self._poblacion.__len__:
+            seleccionado1 = self._poblacion[random.randint(0,50)]
+            seleccionado2 = self._poblacion[random.randint(0,50)]
+            if seleccionado1.get_aptitud() > seleccionado2.get_aptitud():
+                subTorneo = [seleccionado1,seleccionado2, seleccionado1]
+                descendientes.append(seleccionado1)        
+            else:
+                subTorneo = [seleccionado1,seleccionado2, seleccionado2]
+                descendientes.append(seleccionado2)        
+            torneo.append(subTorneo)
+        self._poblacion= descendientes.sort(key=lambda x: x.get_aptitud())
+
         
     #def Cruza(self):
 
