@@ -76,24 +76,25 @@ class AlgoritmoGenetico:
             fx=sumInvest/(500*v+1)
             #Asignamos el valor de la función al individuo
             cromosoma.set_aptitud(fx)
-            return
+        return
         
     def Seleccion(self):
         torneo = []
         descendientes = []
-        while descendientes.__len__ != self._poblacion.__len__:
-            seleccionado1 = self._poblacion[random.randint(0,50)]
-            seleccionado2 = self._poblacion[random.randint(0,50)]
-            if seleccionado1.get_aptitud() > seleccionado2.get_aptitud():
-                subTorneo = [seleccionado1,seleccionado2, seleccionado1]
-                descendientes.append(seleccionado1)        
-            else:
-                subTorneo = [seleccionado1,seleccionado2, seleccionado2]
-                descendientes.append(seleccionado2)        
-            torneo.append(subTorneo)
-        self._poblacion= descendientes.sort(key=lambda x: x.get_aptitud())
+        while len(descendientes) != len(self._poblacion):
+            seleccionado1 = self._poblacion[random.randint(0,49)]
+            seleccionado2 = self._poblacion[random.randint(0,49)]
+            if seleccionado1 != seleccionado2:
+                if seleccionado1.get_aptitud() > seleccionado2.get_aptitud():
+                    subTorneo = [seleccionado1,seleccionado2, seleccionado1]
+                    descendientes.append(seleccionado1) 
+                else:
+                    subTorneo = [seleccionado1,seleccionado2, seleccionado2]
+                    descendientes.append(seleccionado2)  
+                torneo.append(subTorneo)
+        self._poblacion= descendientes  
+        return torneo
 
-        
     #def Cruza(self):
 
     #def Mutacion(self):
@@ -104,9 +105,19 @@ class AlgoritmoGenetico:
             cadena+=str(cromo)+'\n'
         return cadena
 
+    def printTorneo(self, torneo):
+        cadena = 'TORNEO\n\t\t\tPARTICIPANTES\t\t\t\t\t\tGANADOR\n\n'
+        for cromo in torneo: 
+            for cromosoma in cromo:
+                cadena+=str(cromosoma)+'  '
+            cadena+='\n'
+        return cadena
         
 if __name__ == "__main__":
     A = AlgoritmoGenetico()
-    A.PoblacionInicial()
-    print(A)
-    #A.SetFitness()
+    A.PoblacionInicial()    
+    A.SetFitness()
+    torneo = A.Seleccion()
+    print(A.printTorneo(torneo))
+
+
