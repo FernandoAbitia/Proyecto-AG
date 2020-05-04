@@ -112,12 +112,25 @@ class AlgoritmoGenetico:
                 cadena+=str(cromosoma)+'  '
             cadena+='\n'
         return cadena
-        
+
+    def generarInversion(self, count,list, acomulado):
+        if count == 3:
+            list.append((10-acomulado))
+            return 
+        inversion = random.randint(0,(10-acomulado))
+        acomulado+= inversion
+        count= count + 1
+        list.append(inversion)
+        self.generarInversion(count,list,acomulado)
+        return list
+            
 if __name__ == "__main__":
     A = AlgoritmoGenetico()
-    A.PoblacionInicial()    
-    A.SetFitness()
-    torneo = A.Seleccion()
-    print(A.printTorneo(torneo))
+    lista= A.generarInversion(0,list(),0)
+    print(lista)
+    #A.PoblacionInicial()    
+    #A.SetFitness()
+    #torneo = A.Seleccion()
+    #print(A.printTorneo(torneo))
 
 
