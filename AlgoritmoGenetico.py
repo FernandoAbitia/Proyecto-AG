@@ -1,4 +1,5 @@
 from Cromosoma import Cromosoma
+from functools import reduce
 import random
 import numpy as np
 import pandas as pd
@@ -15,24 +16,12 @@ class AlgoritmoGenetico:
         self._poblacion=[]
 
     def PoblacionInicial(self):
-        #Definimos una lista que almacenará las inversiones (para validación)
         inv=[]
         #Ciclo inicial que itera tantas veces como individuos haya
         for i in range(self._individuos):
-            #Definimos un ciclo que se repetirá hasta obtener una lista de genes cuyas cadenas no superen
-            #el valor 10 en decimal (por cadena individual)
-            while True:
-                #Se genera una nueva lista de genes
-                genes = np.random.randint(low=0, high=2, size=(16))
-                #Obtenemos la lista de inversiones en valor decimal
-                inv=self.getInversion(genes)
-                #Si alguna de las cadenas supera el valor 10 en decimal, el ciclo while se reinicializa
-                if (any((c>10) for c in inv)):
-                    continue
-                #De lo contrario, agregamos a la población un nuevo cromosoma con una lista de genes con cadenas binarias válidas
-                self._poblacion.append(Cromosoma(genes))
-                #Salimos del ciclo while y se procede a la siguiente iteración del ciclo for
-                break
+                inv = [str(bin(x))[2:].zfill(4) for x in self.generarInversion(0,list(),0)]
+                Genes = [int(i) for e in inv for i in e]
+                self._poblacion.append(Cromosoma(Genes))
     
     def Algoritmo(self):
         for generacion in self._generaciones:
@@ -102,11 +91,11 @@ class AlgoritmoGenetico:
     def __str__(self):
         cadena = ''
         for cromo in self._poblacion: 
-            cadena+=str(cromo)+'\n'
+            cadena+=str(cromo)+ ' Fitness: '+str(cromo.get_aptitud())+'\n'
         return cadena
 
     def printTorneo(self, torneo):
-        cadena = 'TORNEO\n\t\t\tPARTICIPANTES\t\t\t\t\t\tGANADOR\n\n'
+        cadena = 'TORNEO\n\t\t\t\t\tPARTICIPANTES\t\t\t\t\t\t\t\t\tGANADOR\n\n'
         for cromo in torneo: 
             for cromosoma in cromo:
                 cadena+=str(cromosoma)+'  '
@@ -126,11 +115,10 @@ class AlgoritmoGenetico:
             
 if __name__ == "__main__":
     A = AlgoritmoGenetico()
-    lista= A.generarInversion(0,list(),0)
-    print(lista)
-    #A.PoblacionInicial()    
-    #A.SetFitness()
-    #torneo = A.Seleccion()
-    #print(A.printTorneo(torneo))
+    A.PoblacionInicial()
+    A.SetFitness()
+    print(A)
+    torneo = A.Seleccion()
+    print(A.printTorneo(torneo))
 
 
