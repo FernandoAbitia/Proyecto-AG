@@ -95,10 +95,10 @@ class AlgoritmoGenetico:
             if (random.uniform(0,1) < self._pCruza):
                 nPoblacion.extend([p1,p2])
                 continue
-            x1 = random.randint(0,(len(p1.get_genes())/2))
-            x2 = random.randint(x1+1,(len(p1.get_genes())-1))
             g1 = p1.get_genes()
             g2 = p2.get_genes()
+            x1 = random.randint(0,(len(g1)/2))
+            x2 = random.randint(x1+1,(len(g1)-1))
             ch1 = g1[0:x1] + g2[x1:x2+1] + g1[x2+1:len(g1)]
             ch2 = g2[0:x1] + g1[x1:x2+1] + g2[x2+1:len(g2)]
             nPoblacion.extend([Cromosoma(ch1),Cromosoma(ch2)])
