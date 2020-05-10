@@ -24,16 +24,12 @@ class AlgoritmoGenetico:
                 self._poblacion.append(Cromosoma(Genes))
     
     def Algoritmo(self):
-        for generacion in self._generaciones:
+        self.PoblacionInicial()
+        for generacion in range(self._generaciones):
            self.SetFitness()
            self.Seleccion()
            self.Cruza()
-
-        ##Calcular aptitud a la población
-        ##Selección
-        ##Cruza
-        ##Mutación
-        ##
+           print(A)
            
     def getInversion(self, genes):
         #Dividimos en 4 bits la cadena binaria del cromosoma
@@ -56,7 +52,6 @@ class AlgoritmoGenetico:
         #Accedemos a un ciclo para iterar sobre los individuos de la población
         for cromosoma in self._poblacion:
             inversiones=self.getInversion(cromosoma.get_genes())
-            print (inversiones)
             #Aplicamos la función de aptitud y le asignamos el valor al cromosoma
             #Primero obtenemos los beneficios o ganancias por zona de acuerdo a la inversión
             beneficios=[self.df_beneficios[self.df_beneficios['Inversion']==inversiones[index]].iloc[0,(index+1)]for index in range(len(inversiones))]
@@ -88,25 +83,49 @@ class AlgoritmoGenetico:
         return torneo
 
     def Cruza(self):
-        nPoblacion = []
-        while (len(self._poblacion)!=0):
-            p1 = self._poblacion.pop(0)
-            p2 = self._poblacion.pop(0)
-            if (random.uniform(0,1) < self._pCruza):
+        nPoblacion = []#Nueva población
+        while (len(self._poblacion)!=0):#Ciclo que itera en número de cromosomas en la población
+            p1 = self._poblacion.pop(0)#Obtener el primer padre de la población
+            p2 = self._poblacion.pop(0)#Obtener el segundo padre
+            if (random.uniform(0,1) < self._pCruza):#Si la probabilidad obtenida es menor a la de cruza, los padres pasan tal cual a la nueva población
                 nPoblacion.extend([p1,p2])
                 continue
-            g1 = p1.get_genes()
-            g2 = p2.get_genes()
-            x1 = random.randint(0,(len(g1)/2))
-            x2 = random.randint(x1+1,(len(g1)-1))
-            ch1 = g1[0:x1] + g2[x1:x2+1] + g1[x2+1:len(g1)]
-            ch2 = g2[0:x1] + g1[x1:x2+1] + g2[x2+1:len(g2)]
-            nPoblacion.extend([Cromosoma(ch1),Cromosoma(ch2)])
-        self._poblacion=nPoblacion
-        
+            g1 = p1.get_genes()#Obtener los genes del padre 1
+            g2 = p2.get_genes()#Obtener los genes del padre 2
+            while (True):#Ciclo que verifica que los puntos de cruza sean diferentes a la longitud de toda la lista
+                x1 = random.randint(0,(len(g1)/2))
+                x2 = random.randint(x1+1,(len(g1)-1))
+                if ((x2-x1)<16):
+                    break
+            ch1 = g1[0:x1] + g2[x1:x2+1] + g1[x2+1:len(g1)]#Crear el primer hijo
+            ch2 = g2[0:x1] + g1[x1:x2+1] + g2[x2+1:len(g2)]#Crear el segundo hijo
+            ch1 = self.Mutacion(ch1)#Aplicar una probable mutación
+            ch2 = self.Mutacion(ch2)#Aplicar una probable mutación
+            L=[]
+            L.extend([ch1,ch2])#Lista que guarda los genes de los hijos para iterarlos en el posterior ciclo
+            C=[]#Lista que almacena los valores finales del los genes (en caso de anular una cadena)
+            for i in range(2):#Ciclo que itera los genes de los cromosomas hijo
+                k=0#Variable que se utiliza para tomar rangos de cadenas de la lista de genes
+                genes=L.pop(0)#Obtener la lista de genes del primer /segundo hijo
+                R = self.getInversion(genes)#Obtener los valores de la lista en decimal (inversiones)
+                for inversion in R:#Ciclo para verificar cada inversion
+                    if (inversion>10):
+                        genes[k:k+4]=[0,0,0,0]#Si la inversión es mayor a 10 se anula y se deja 0
+                    k+=4#Incrementar el rango para tomar la siguiente cadena
+                    C.append(genes)#Agregar la lista de genes a la lista de genes finales
+            ch1 = C.pop(0)#Obtener la lista de genes finales del hijo 1
+            ch2 = C.pop(0)#Obtener la lista de genes finales del hijo 2
+            nPoblacion.extend([Cromosoma(ch1),Cromosoma(ch2)])# Agregar los nuevos cromosomas hijo a la nueva población
+        self._poblacion=nPoblacion#Reasignar la variable de la población
 
-    #def Mutacion(self):
-         
+    def Mutacion(self, genes):
+        if (random.uniform(0,1)<self._pMutacion):
+            return genes
+        p = random.randint(0,(len(genes)-1))
+        bit = random.randint(0,1)
+        genes[p]=bit
+        return genes
+                           
     def __str__(self):
         cadena = ''
         for cromo in self._poblacion: 
@@ -134,29 +153,6 @@ class AlgoritmoGenetico:
             
 if __name__ == "__main__":
     A = AlgoritmoGenetico()
-    A.PoblacionInicial()
-    A.SetFitness()
-    print(A)
-    A.Cruza()
-    A.SetFitness()
-    print(A)
-    #torneo = A.Seleccion()
-    #print(A.printTorneo(torneo))
-
-    
-    g1 = [1,2,3,4,5,6,7,8,9,10]
-    g2 = [11,12,13,14,15,16,17,18,19,20]
-    punto1 = random.randint(0,(len(g1)/2))
-    punto2 = random.randint(punto1+1,(len(g1)-1))
-    print ('Lista 1: '+str(g1))
-    print ('Lista 2: '+str(g2))
-    print ('Punto 1: '+str(punto1))
-    print ('Punto 2: '+str(punto2))
-    c1 = g1[0:punto1] + g2[punto1:punto2+1] + g1[punto2+1:len(g1)]
-    c2 = g2[0:punto1] + g1[punto1:punto2+1] + g2[punto2+1:len(g2)]
-    print ('Child 1' +str(c1))
-    print ('Child 2'+str(c2))
-
-
+    A.Algoritmo()
 
     
