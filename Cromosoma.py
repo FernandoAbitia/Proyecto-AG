@@ -1,4 +1,4 @@
-import pandas as pd
+import random
 class Cromosoma:
 
     def __init__(self, genes):

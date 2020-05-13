@@ -1,14 +1,12 @@
 from Cromosoma import Cromosoma
-from functools import reduce
 import random
 import numpy as np
 import pandas as pd
-import functools
 class AlgoritmoGenetico:
     
     df_beneficios=pd.read_csv('CSV\Beneficios.csv')
 
-    def __init__(self, generaciones=20, individuos=50, cruza=0.8, mutacion=0.01):
+    def __init__(self, generaciones=5, individuos=50, cruza=0.8, mutacion=0.01):
         self._generaciones=generaciones
         self._individuos=individuos
         self._pCruza=cruza
@@ -22,13 +20,15 @@ class AlgoritmoGenetico:
                 inv = [str(bin(x))[2:].zfill(4) for x in self.generarInversion(0,list(),0)]
                 Genes = [int(i) for e in inv for i in e]
                 self._poblacion.append(Cromosoma(Genes))
-    
+        return self._poblacion
+
     def Algoritmo(self):
         self.PoblacionInicial()
+        print(A)
         for generacion in range(self._generaciones):
            self.SetFitness()
-           self.Seleccion()
-           self.Cruza()
+           #self.Seleccion()
+           #self.Cruza()
            print(A)
            
     def getInversion(self, genes):
@@ -56,7 +56,7 @@ class AlgoritmoGenetico:
             #Primero obtenemos los beneficios o ganancias por zona de acuerdo a la inversión
             beneficios=[self.df_beneficios[self.df_beneficios['Inversion']==inversiones[index]].iloc[0,(index+1)]for index in range(len(inversiones))]
             #Calculamos la suma de los ganancias de las inversiones 
-            sumInvest=functools.reduce(lambda a,b:a+b,beneficios)
+            sumInvest=sum(beneficios)
             #Obtenemos la variable que 'v' que equivale al valor absoluto de la diferencia de la suma anterior y 10
             v=abs(sumInvest-10)
             #Calculamos la función de aptitud para el cromosoma
@@ -87,7 +87,7 @@ class AlgoritmoGenetico:
         while (len(self._poblacion)!=0):#Ciclo que itera en número de cromosomas en la población
             p1 = self._poblacion.pop(0)#Obtener el primer padre de la población
             p2 = self._poblacion.pop(0)#Obtener el segundo padre
-            if (random.uniform(0,1) < self._pCruza):#Si la probabilidad obtenida es menor a la de cruza, los padres pasan tal cual a la nueva población
+            if (random.uniform(0,1) > self._pCruza):#Si la probabilidad obtenida es menor a la de cruza, los padres pasan tal cual a la nueva población
                 nPoblacion.extend([p1,p2])
                 continue
             g1 = p1.get_genes()#Obtener los genes del padre 1
@@ -119,10 +119,10 @@ class AlgoritmoGenetico:
         self._poblacion=nPoblacion#Reasignar la variable de la población
 
     def Mutacion(self, genes):
-        if (random.uniform(0,1)<self._pMutacion):
+        if (random.uniform(0,1)>=self._pMutacion):
             return genes
         p = random.randint(0,(len(genes)-1))
-        bit = random.randint(0,1)
+        bit = 1 if genes[p]==0 else 0
         genes[p]=bit
         return genes
                            
@@ -154,5 +154,8 @@ class AlgoritmoGenetico:
 if __name__ == "__main__":
     A = AlgoritmoGenetico()
     A.Algoritmo()
+    '''for i in A._poblacion:
+        print(A.getInversion(i.get_genes()))'''
+    
 
     
