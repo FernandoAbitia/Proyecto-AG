@@ -2,11 +2,10 @@ from Cromosoma import Cromosoma
 import random
 import numpy as np
 import pandas as pd
+df_beneficios=pd.read_csv('CSV\Beneficios.csv')
 class AlgoritmoGenetico:
-    
-    df_beneficios=pd.read_csv('CSV\Beneficios.csv')
 
-    def __init__(self, generaciones=20, individuos=50, cruza=0.8, mutacion=0.01):
+    def __init__(self, generaciones=50, individuos=50, cruza=0.8, mutacion=0.01):
         self._generaciones=generaciones
         self._individuos=individuos
         self._pCruza=cruza
@@ -25,13 +24,30 @@ class AlgoritmoGenetico:
     def Algoritmo(self):
         self.PoblacionInicial()
         self.SetFitness()
+        print('PRIMERA GENERACIÓN')
         print(A)
         for generacion in range(self._generaciones):
-           self.Seleccion()
+           self.Seleccion_Tournament()
            self.Cruza()
            self.SetFitness()
-           print(A)
-        
+        print('ÚLTIMA GENERACIÓN')
+        self._poblacion.sort(key= lambda x: x.get_aptitud(), reverse=True) 
+        print(A)
+        print('MEJOR INVERSIÓN POR ZONA DE ACUERDO A LA EVOLUCIÓN DE LOS VALORES DE LA POBLACIÓN:')
+        investFinal=self.getInversion(self._poblacion.pop(0).get_genes())
+        for index in range(len(investFinal)): 
+            print(f'ZONA {index+1}: {investFinal[index]}')
+        print(f'GANANCIA MÁXIMA CALCULADA ${sum(self.getBeneficios(investFinal))} MILLONES')
+
+    def getBeneficios(self,inversiones):
+        beneficios=[]
+        for index in range(len(inversiones)):
+            inversion=inversiones[index]
+            if(inversion>10):
+                #genesTemp[(index*4):(index*4)+4]=[0,0,0,0]
+                inversiones[index]=0
+            beneficios.append(df_beneficios[df_beneficios['Inversion']==inversiones[index]].iloc[0,(index+1)])    
+        return beneficios
            
     def getInversion(self, genes):
         #Dividimos en 4 bits la cadena binaria del cromosoma
@@ -58,13 +74,7 @@ class AlgoritmoGenetico:
 
             #Aplicamos la función de aptitud y le asignamos el valor al cromosoma
             #Primero obtenemos los beneficios o ganancias por zona de acuerdo a la inversión
-            beneficios=[]
-            for index in range(len(inversiones)):
-                inversion=inversiones[index]
-                if(inversion>10):
-                    genesTemp[(index*4):(index*4)+4]=[0,0,0,0]
-                    inversiones[index]=0
-                beneficios.append(self.df_beneficios[self.df_beneficios['Inversion']==inversiones[index]].iloc[0,(index+1)])
+            beneficios=self.getBeneficios(inversiones)
 
             #Calculamos la suma de las inversiones de cada zona
             sumaInvest=sum(inversiones)
@@ -83,8 +93,8 @@ class AlgoritmoGenetico:
             #print( str(cromosoma) + str(cromosoma.get_aptitud()) )
         return
         
-    def Seleccion(self):
-        print('------SELECCIÓN-------')
+    def Seleccion_Tournament(self):
+        #print('------SELECCIÓN-------')
         torneo = []
         descendientes = []
         while len(descendientes) != len(self._poblacion):
@@ -99,43 +109,53 @@ class AlgoritmoGenetico:
 
             if seleccionado1.get_aptitud() > seleccionado2.get_aptitud():
                 subTorneo = [seleccionado1,seleccionado2, seleccionado1]
-                descendientes.append(seleccionado1) 
+                descendientes.append(seleccionado1)
+                torneo.append(subTorneo) 
             else:
                 subTorneo = [seleccionado1,seleccionado2, seleccionado2]
                 descendientes.append(seleccionado2)  
                 torneo.append(subTorneo)
 
-        self._poblacion= descendientes 
+        self._poblacion= descendientes
+        self._poblacion.sort(key= lambda x: x.get_aptitud(), reverse=True)  
         return torneo
 
     def Cruza(self):
         nPoblacion = []#Nueva población
         while (len(self._poblacion)!=0):#Ciclo que itera en número de cromosomas en la población
+
             p1 = self._poblacion.pop(0)#Obtener el primer padre de la población
             p2 = self._poblacion.pop(0)#Obtener el segundo padre
+
             if (random.uniform(0,1) > self._pCruza):#Si la probabilidad obtenida es mayor a la de cruza, los padres pasan tal cual a la nueva población
                 nPoblacion.extend([p1,p2])
                 continue
+
             g1 = p1.get_genes()#Obtener los genes del padre 1
             g2 = p2.get_genes()#Obtener los genes del padre 2
+
             while (True):#Ciclo que verifica que los puntos de cruza sean diferentes a la longitud de toda la lista
                 x1 = random.randint(0,(len(g1)/2))
                 x2 = random.randint(x1+1,(len(g1)-1))
                 if ((x2-x1)<15):
                     break
+
             ch1 = g1[0:x1] + g2[x1:x2+1] + g1[x2+1:len(g1)]#Crear el primer hijo
             ch2 = g2[0:x1] + g1[x1:x2+1] + g2[x2+1:len(g2)]#Crear el segundo hijo
+
             ch1 = self.Mutacion(ch1)#Aplicar una probable mutación
             ch2 = self.Mutacion(ch2)#Aplicar una probable mutación
-            
-            p1.set_genes(ch1)
-            p2.set_genes(ch2)
-            nPoblacion.extend([p1,p2])# Agregar los nuevos cromosomas hijo a la nueva población
+
+            nP1=Cromosoma(ch1,p1.get_aptitud())
+            nP2=Cromosoma(ch2,p2.get_aptitud())
+
+            nPoblacion.extend([nP1,nP2])# Agregar los nuevos cromosomas hijo a la nueva población
         self._poblacion=nPoblacion#Reasignar la variable de la población
 
     def Mutacion(self, genes):
         if (random.uniform(0,1)>self._pMutacion):
             return genes
+
         p = random.randint(0,(len(genes)-1))
         bit = 1 if genes[p]==0 else 0
         genes[p]=bit
@@ -144,14 +164,14 @@ class AlgoritmoGenetico:
     def __str__(self):
         cadena = ''
         for cromo in self._poblacion: 
-            cadena+='Inversión: '+str(self.getInversion(cromo.get_genes()))+ ' Fitness: '+str(cromo.get_aptitud())+'\n'
+            cadena+='Cromosoma:'+str(cromo.get_genes())+'- Inversión: '+str(self.getInversion(cromo.get_genes()))+ '- Fitness: '+str(cromo.get_aptitud())+'\n'
         return cadena
 
     def printTorneo(self, torneo):
         cadena = 'TORNEO\n\t\t\t\t\tPARTICIPANTES\t\t\t\t\t\t\t\t\tGANADOR\n\n'
         for cromo in torneo: 
             for cromosoma in cromo:
-                cadena+=str(self.getInversion(cromosoma.get_genes()))+'  '
+                cadena+=str(self.getInversion(cromosoma.get_genes()))+' Fitness: '+str(round(cromosoma.get_aptitud(),2))+'   '
             cadena+='\n'
         return cadena
 
@@ -165,4 +185,6 @@ class AlgoritmoGenetico:
             
 if __name__ == "__main__":
     A = AlgoritmoGenetico()
+    print('\nALGORITMO GENÉTICO QUE DETERMINA LA MEJOR INVERSIÓN DE LAS CUATRO ZONAS DE LA SIGUIENTE TABLA:\n')
+    print(str(df_beneficios)+'\n')
     A.Algoritmo()

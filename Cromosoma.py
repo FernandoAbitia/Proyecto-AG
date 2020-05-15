@@ -1,9 +1,8 @@
-import random
 class Cromosoma:
 
-    def __init__(self, genes):
+    def __init__(self, genes,aptitud=0):
         self._genes=genes
-        self._aptitud = 0
+        self._aptitud = aptitud
 
     def get_aptitud(self):
         return self._aptitud
